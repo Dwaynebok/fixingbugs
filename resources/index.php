@@ -28,6 +28,7 @@ $pdo = openConnection();
 
 if(!empty($_POST['firstname']) && !empty($_POST['lastname'])) {
     //@todo possible bug below?
+    //removed the ! from the if statement and add SET to the update message and also removes the parameters around the SET
     if(empty($_POST['id'])) {
         $handle = $pdo->prepare('INSERT INTO user (firstname, lastname, year) VALUES (:firstname, :lastname, :year)');
         $message = 'Your record has been added';
