@@ -1,15 +1,19 @@
 <?php
+
 declare(strict_types=1);
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
 
 $sports = ['Football', 'Tennis', 'Ping pong', 'Volley ball', 'Rugby', 'Horse riding', 'Swimming', 'Judo', 'Karate'];
 
 function openConnection(): PDO
 {
     // No bugs in this function, just use the right credentials.
-    $dbhost = "DB_HOST";
-    $dbuser = "DB_USER";
-    $dbpass = "DB_USER_PASSWORD";
-    $db = "DB_NAME";
+    $DbHost = "localhost";
+    $DbUser = "becode";
+    $DbPass = "becode123";
+    $db = "excercise1";
 
     $driverOptions = [
         PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'utf8'",
@@ -17,19 +21,19 @@ function openConnection(): PDO
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ];
 
-    return new PDO('mysql:host=' . $dbhost . ';dbname=' . $db, $dbuser, $dbpass, $driverOptions);
+    return new PDO('mysql:host=' . $DbHost . ';dbname=' . $db, $DbUser, $DbPass, $driverOptions);
 }
 
 $pdo = openConnection();
 
 if(!empty($_POST['firstname']) && !empty($_POST['lastname'])) {
     //@todo possible bug below?
-    if(!empty($_POST['id'])) {
+    if(empty($_POST['id'])) {
         $handle = $pdo->prepare('INSERT INTO user (firstname, lastname, year) VALUES (:firstname, :lastname, :year)');
         $message = 'Your record has been added';
     } else {
         //@todo why does this not work?
-        $handle = $pdo->prepare('UPDATE user VALUES (firstname = :firstname, lastname = :lastname, year = :year) WHERE id = :id');
+        $handle = $pdo->prepare('UPDATE user SET firstname = :firstname, lastname = :lastname, year = :year WHERE id = :id');
         $handle->bindValue(':id', $_POST['id']);
         $message = 'Your record has been updated';
     }
@@ -40,7 +44,7 @@ if(!empty($_POST['firstname']) && !empty($_POST['lastname'])) {
     $handle->execute();
 
     if(!empty($_POST['id'])) {
-        $handle = $pdo->prepare('DELETE FROM sport WHERE user_id = :id');
+        $handle = $pdo->prepare('DELETE FROM "sport" WHERE user_id = :id');
         $handle->bindValue(':id', $_POST['id']);
         $handle->execute();
         $userId = $_POST['id'];
@@ -71,7 +75,8 @@ elseif(isset($_POST['delete'])) {
 
 
 //@todo Invalid query?
-$handle = $pdo->prepare('SELECT id, concat_ws(firstname, lastname, " ") AS name, sport FROM user LEFT JOIN sport ON id = sport.user_id where year = :year order by sport');
+// changed add sport to the id
+$handle = $pdo->prepare('SELECT user.id , concat_ws(firstname, lastname, " ") AS name, sport FROM user LEFT JOIN sport ON sport.id = sport.user_id where year = :year order by sport');
 $handle->bindValue(':year', date('Y'));
 $handle->execute();
 $users = $handle->fetchAll();
@@ -90,7 +95,7 @@ if(!empty($_GET['id'])) {
     $handle = $pdo->prepare('SELECT sport FROM sport where user_id = :id');
     $handle->bindValue(':id', $_GET['id']);
     $handle->execute();
-    foreach($handle->fetchAll() AS $sport) {
+    foreach($handle->fetchAll('sports') AS $sport) {
         $selectedUser['sports'][] = $sport;//@todo I just want an array of all sports of this, why is it not working?
     }
 }
@@ -100,7 +105,7 @@ if(empty($selectedUser['id'])) {
         'id' => '',
         'firstname' => '',
         'lastname' => '',
-        'sports' => []
+        'sports' => [],
     ];
 }
 
