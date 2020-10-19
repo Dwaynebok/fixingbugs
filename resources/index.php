@@ -76,6 +76,7 @@ elseif(isset($_POST['delete'])) {
 
 //@todo Invalid query?
 // changed add sport to the id
+//added user.id to the select
 $handle = $pdo->prepare('SELECT user.id , concat_ws(firstname, lastname, " ") AS name, sport FROM user LEFT JOIN sport ON sport.id = sport.user_id where year = :year order by sport');
 $handle->bindValue(':year', date('Y'));
 $handle->execute();
